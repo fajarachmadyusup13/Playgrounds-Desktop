@@ -1,0 +1,76 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package tsp.simulatedannealing;
+
+/**
+ *
+ * @author ghost
+ */
+public class SimulatedAnnealing {
+    
+    public static final double RATE_OF_COOLING = 0.005;
+    public static final double INITIAL_TEMPERATURE = 999;
+    public static final double MIN_TEMPERATURE = 0.99;
+    
+    public Route findRoute(double temperature, Route currentRoute){
+        Route shortestRoute = new Route(currentRoute);
+        Route adjacentRoute;
+        while (temperature > MIN_TEMPERATURE) {
+            System.out.print(currentRoute + " | " + currentRoute.getTotalStringDistance()+ " | " + shortestRoute.getTotalStringDistance() + " | " + String.format("%.2f", temperature));
+            adjacentRoute = obtainAdjacentRoute(new Route(currentRoute));
+            if (currentRoute.getTotalDistance() < shortestRoute.getTotalDistance()) {
+                shortestRoute = new Route(currentRoute);
+            }
+            if (acceptRoute(currentRoute.getTotalDistance(), adjacentRoute.getTotalDistance(), temperature)) {
+                currentRoute = new Route(adjacentRoute);
+            }
+            temperature *= 1-RATE_OF_COOLING;
+        }
+        return null;
+    }
+    
+    private boolean acceptRoute(double currentDistance, double adjacentDistance, double temperature){
+        String decision = null;
+        boolean shorterDistance = true;
+        boolean acceptRouteFlag = false;
+        double acceptanceProbability = 1.0;
+        if (adjacentDistance >= currentDistance) {
+            acceptanceProbability = Math.exp(-(adjacentDistance - currentDistance)/temperature);
+            shorterDistance = false;
+        }
+        double randomNumber = Math.random();
+        if (acceptanceProbability >= randomNumber) {
+            acceptRouteFlag = true;
+        }
+        if (shorterDistance) {
+            decision = "Proceed (Shorter Adjacent Route)";
+        }else if(acceptRouteFlag){
+            decision = "Proceed (Random # <= Prob Function)";
+        }else{
+            decision = "Stay (Random # > Prob Function)";
+        }
+        System.out.println(" | " + String.format("%.2f", acceptanceProbability) + "   |  " + String.format("%.2f", randomNumber) + "      | " + decision);
+        
+        return acceptRouteFlag;
+    }
+    
+    private Route obtainAdjacentRoute(Route route){
+        int x1 = 0;
+        int x2 = 0;
+        while (x1 == x2) {
+            x1 = (int) (route.getCities().size() * Math.random());
+            x2 = (int) (route.getCities().size() * Math.random());
+        }
+        City city1 = route.getCities().get(x1);
+        City city2 = route.getCities().get(x2);
+        route.getCities().set(x2, city1);
+        route.getCities().set(x1, city2);
+        
+        
+        return route;
+    }
+    
+}
